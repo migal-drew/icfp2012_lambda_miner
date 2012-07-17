@@ -33,13 +33,13 @@ bool isTrampolineOrTarget(char c)
 	return isTarget || isTrampoline;
 }
 
-bool isRockFallingHere(char** m, int w, int h, Point curPoint)
+bool isSafeFromRocks(char** m, int w, int h, Point curPoint)
 {
 	int width = w;
 	int height = h;
 
-	Point up = Point(curPoint.x, (curPoint.y - 1 >= 0) ? curPoint.y : -1);
-	Point upper = Point(curPoint.x, (curPoint.y - 2 >= 0) ? curPoint.y : -1);
+	Point up = Point(curPoint.x, (curPoint.y - 1 >= 0) ? curPoint.y - 1 : -1);
+	Point upper = Point(curPoint.x, (curPoint.y - 2 >= 0) ? curPoint.y - 2 : -1);
 	Point upLeft = Point((curPoint.x - 1 >= 0) ? curPoint.x - 1 : -1,
 			(curPoint.y - 1 >= 0) ? curPoint.y - 1 : -1);
 	Point upperLeft = Point((curPoint.x - 1 >= 0) ? curPoint.x - 1 : -1,
@@ -48,30 +48,59 @@ bool isRockFallingHere(char** m, int w, int h, Point curPoint)
 			(curPoint.y - 1 >= 0) ? curPoint.y - 1 : -1);
 	Point upperRight = Point((curPoint.x + 1 < width) ? curPoint.x + 1 : -1,
 			(curPoint.y - 2 >= 0) ? curPoint.y - 2 : -1);
+	Point left = Point((curPoint.x - 1 >= 0) ? curPoint.x - 1 : -1, curPoint.y);
+	Point right = Point((curPoint.x + 1 < width) ? curPoint.x + 1 : -1, curPoint.y);
+	Point down = Point(curPoint.x, curPoint.y + 1);
 
 	if (upper.y != -1)
 	{
-		if ((m[upper.y][upper.x] == '*' || m[upper.y][upper.x] == '@')
-			&& m[up.y][up.x] == ' ')
+		//printf("%d %d upper\n", upper.x, upper.y);
+		//printf("%d %d up\n", up.x, up.y);
+		if ((m[upper.y][upper.x] == rock || m[upper.y][upper.x] == horock)
+			&& m[up.y][up.x] == empty && m[down.y][down.x] == robot)
+		{
+			printf("Danger up\n");
 			return false;
+		}
 
-		if ((m[upper.y][upper.x] == '*' || m[upper.y][upper.x] == '@')
-			&& m[up.y][up.x] == 'R')
+		if ((m[upper.y][upper.x] == rock || m[upper.y][upper.x] == horock)
+				&& m[up.y][up.x] == robot)
+		{
+			printf("Danger up rock is above~\n");
 			return false;
+		}
 
-		if ((m[upperLeft.y][upperLeft.x] == '*' || m[upperLeft.y][upperLeft.x] == '@')
-				&& (m[upLeft.y][upLeft.x] == '*' || m[upLeft.y][upLeft.x] == '#'
-						|| m[upLeft.y][upLeft.x] == 'W' || m[upLeft.y][upLeft.x] == '@'
-								|| m[upLeft.y][upLeft.x] == '\\'
-										|| isTrampolineOrTarget(m[upLeft.y][upLeft.x])))
-			return false;
 
-		if ((m[upperRight.y][upperRight.x] == '*' || m[upperRight.y][upperRight.x] == '@')
-				&& (m[upLeft.y][upLeft.x] == '*' || m[upLeft.y][upLeft.x] == '#'
-						|| m[upLeft.y][upLeft.x] == 'W' || m[upLeft.y][upLeft.x] == '@'
-								|| m[upLeft.y][upLeft.x] == '\\'
-										|| isTrampolineOrTarget(m[upRight.y][upRight.x])))
-			return false;
+		if ((m[upperLeft.y][upperLeft.x] == rock || m[upperLeft.y][upperLeft.x] == horock)
+				&& (m[upLeft.y][upLeft.x] == rock || m[upLeft.y][upLeft.x] == '#'
+				|| m[upLeft.y][upLeft.x] == beard || m[upLeft.y][upLeft.x] == horock
+				|| m[upLeft.y][upLeft.x] == lambda
+				|| isTrampolineOrTarget(m[upLeft.y][upLeft.x])))
+		{
+
+			if (left.x != -1)
+				if (m[left.y][left.x] == robot)
+				{
+					printf("Danger left\n");
+					return false;
+				}
+		}
+
+		if ((m[upperRight.y][upperRight.x] == rock || m[upperRight.y][upperRight.x] == horock)
+				&& (m[upRight.y][upRight.x] == rock || m[upRight.y][upLeft.x] == wall
+				|| m[upRight.y][upRight.x] == beard || m[upRight.y][upRight.x] == horock
+				|| m[upRight.y][upRight.x] == lambda
+				|| isTrampolineOrTarget(m[upRight.y][upRight.x])))
+		{
+
+			if (right.x != -1)
+				if (m[right.y][right.x] == robot)
+				{
+					printf("Danger right\n");
+					return false;
+				}
+		}
+
 	}
 
 	return true;
@@ -158,7 +187,7 @@ int GetNearest(vector< vector<Point> > clasters, Point startpos, Point *minp, in
 
 int PathSize(MineMap &map, Point start, Point dest, list<Point>* route, AStarSearch &as)
 {
-        as.getRoute(&map, start, dest, *route, isRockFallingHere, "*#W@");
+        as.getRoute(&map, start, dest, *route, isSafeFromRocks, "*#W@");
 
         if (route->size() > 0)
         {

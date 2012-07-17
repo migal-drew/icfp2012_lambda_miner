@@ -34,7 +34,7 @@ void MoveRobot(vector<char> *res, MineMap &map, list<Point>* route)
 int main()
 {
     MineMap map;
-	//map.openFileForMap("C:\\Users\\Vlad\\Projects\\C++\\Lex200icfp\\Debug\\input.txt");
+	//map.openFileForMap("C:\\Users\\Vlad\\Projects\\C++\\Lex200icfp\\Debug\\test.map");
     map.ReadMap();
     //map.ShortPrint();
     vector<Point> lam = map.GetLambdas();
@@ -66,7 +66,7 @@ int main()
 			route = new list<Point>();
 			//MOVEROBOT here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			Point ppp = map.GetRobot();
-			as.getRoute(&map, ppp, minp, *route, isRockFallingHere, (char*)"*#W@");
+			as.getRoute(&map, ppp, minp, *route, isSafeFromRocks, (char*)"*#W@");
 			if(route->size() == 0)
 			{
 				clastertomove = GetNearestAA(map, clstrs, map.GetRobot(), &minp, 1);
@@ -121,7 +121,7 @@ int main()
 	{
 		route = new list<Point>();
 		Point ppp = map.GetRobot();
-		as.getRoute(&map, ppp, minp, *route, isRockFallingHere, (char*)"*#W@");
+		as.getRoute(&map, ppp, minp, *route, isSafeFromRocks, (char*)"*#W@");
 		
 		if(route->size() == 0)
 		{
